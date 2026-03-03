@@ -1,0 +1,66 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import type { Tables } from "@/integrations/supabase/types";
+
+type Order = Tables<"orders">;
+
+const statusColors: Record<string, string> = {
+  pending: "bg-warning/10 text-warning border-warning/30",
+  processing: "bg-primary/10 text-primary border-primary/30",
+  completed: "bg-success/10 text-success border-success/30",
+  partial: "bg-warning/10 text-warning border-warning/30",
+  cancelled: "bg-muted text-muted-foreground",
+  failed: "bg-destructive/10 text-destructive border-destructive/30",
+};
+
+export default function UserOrders() {
+  const { user } = useAuth();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("orders").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).then(({ data }) => {
+      setOrders(data || []);
+      setLoading(false);
+    });
+  }, [user]);
+
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-bold tracking-tight">My Orders</h2>
+      <div className="rounded-lg border bg-card overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Order ID</TableHead>
+              <TableHead>Link</TableHead>
+              <TableHead>Quantity</TableHead>
+              <TableHead>Charge</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Date</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {orders.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No orders yet</TableCell></TableRow>}
+            {orders.map((o) => (
+              <TableRow key={o.id}>
+                <TableCell className="font-mono text-xs">{o.id.slice(0, 8)}</TableCell>
+                <TableCell className="max-w-32 truncate text-xs">{o.link}</TableCell>
+                <TableCell>{o.quantity}</TableCell>
+                <TableCell>${o.charge}</TableCell>
+                <TableCell><Badge variant="outline" className={statusColors[o.status] || ""}>{o.status}</Badge></TableCell>
+                <TableCell className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
