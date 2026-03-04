@@ -17,6 +17,7 @@ import AdminMapping from "@/pages/admin/AdminMapping";
 import AdminOrders from "@/pages/admin/AdminOrders";
 import AdminPayments from "@/pages/admin/AdminPayments";
 import AdminUsers from "@/pages/admin/AdminUsers";
+import AdminPaymentSettings from "@/pages/admin/AdminPaymentSettings";
 import UserDashboard from "@/pages/user/UserDashboard";
 import UserServices from "@/pages/user/UserServices";
 import UserOrders from "@/pages/user/UserOrders";
@@ -54,6 +55,7 @@ const App = () => (
               <Route path="orders" element={<AdminOrders />} />
               <Route path="payments" element={<AdminPayments />} />
               <Route path="users" element={<AdminUsers />} />
+              <Route path="payment-settings" element={<AdminPaymentSettings />} />
             </Route>
 
             {/* User routes */}
