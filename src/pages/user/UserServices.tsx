@@ -94,15 +94,15 @@ export default function UserServices() {
     );
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto w-full min-w-0 overflow-x-hidden">
       <h2 className="text-lg font-semibold text-gray-900 mb-4">New Order</h2>
 
-      <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6">
+      <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 md:p-6">
         <form onSubmit={handleOrder} className="space-y-5">
           {/* Category & Service — 2-col on desktop */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
             {/* Category */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 min-w-0">
               <label className="block text-sm font-medium text-gray-700">Category</label>
               <select
                 value={selectedCategory}
@@ -120,7 +120,7 @@ export default function UserServices() {
             </div>
 
             {/* Service */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 min-w-0">
               <label className="block text-sm font-medium text-gray-700">Service</label>
               <select
                 value={selectedService}
@@ -148,7 +148,7 @@ export default function UserServices() {
               <textarea
                 readOnly
                 value={service.description}
-                className="w-full min-h-[120px] resize-none rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 focus:outline-none"
+                className="w-full min-h-[120px] resize-none rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 break-words focus:outline-none"
               />
             </div>
           )}
@@ -167,8 +167,8 @@ export default function UserServices() {
           </div>
 
           {/* Quantity & Charge — 2-col */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
+            <div className="space-y-1.5 min-w-0">
               <label className="block text-sm font-medium text-gray-700">
                 Quantity {service ? <span className="text-gray-400 font-normal">({service.min} – {service.max})</span> : ""}
               </label>
