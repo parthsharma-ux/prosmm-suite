@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { LayoutDashboard, Package, ShoppingCart, Wallet, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const navItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -42,6 +43,7 @@ export default function UserLayout() {
           <div className="text-sm text-muted-foreground">
             Balance: <span className="font-semibold text-foreground">${profile?.wallet_balance?.toFixed(2) ?? "0.00"}</span>
           </div>
+          <ThemeToggle />
           <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground">
             <LogOut className="h-4 w-4 mr-1" /> Sign Out
           </Button>
