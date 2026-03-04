@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
+import { Copy } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type PaymentRequest = Tables<"payment_requests">;
@@ -28,6 +29,8 @@ export default function UserFunds() {
   const [submitting, setSubmitting] = useState(false);
   const [payments, setPayments] = useState<PaymentRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [upiQrUrl, setUpiQrUrl] = useState("");
+  const [trc20Address, setTrc20Address] = useState("");
 
   const fetchPayments = () => {
     if (!user) return;
@@ -37,7 +40,18 @@ export default function UserFunds() {
     });
   };
 
-  useEffect(() => { fetchPayments(); }, [user]);
+  useEffect(() => {
+    fetchPayments();
+    // Fetch payment settings
+    supabase.from("payment_settings").select("*").then(({ data }) => {
+      if (data) {
+        for (const row of data) {
+          if (row.setting_key === "upi_qr_url") setUpiQrUrl(row.setting_value);
+          if (row.setting_key === "trc20_address") setTrc20Address(row.setting_value);
+        }
+      }
+    });
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,33 +87,65 @@ export default function UserFunds() {
     setSubmitting(false);
   };
 
+  const copyAddress = () => {
+    navigator.clipboard.writeText(trc20Address);
+    toast.success("Address copied!");
+  };
+
   return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-bold tracking-tight">Add Funds</h2>
-      <Card className="shadow-sm border-border/50">
-        <CardContent className="pt-6">
+    <div className="w-full max-w-2xl mx-auto space-y-6">
+      <h2 className="text-base font-semibold text-foreground">Add Funds</h2>
+
+      {/* Payment Info */}
+      {method === "upi" && upiQrUrl && (
+        <Card className="border-border">
+          <CardContent className="pt-6 flex flex-col items-center gap-3">
+            <Label className="text-xs uppercase tracking-wide text-muted-foreground">Scan QR to Pay via UPI</Label>
+            <img src={upiQrUrl} alt="UPI QR" className="max-w-48 rounded-lg border border-border" />
+          </CardContent>
+        </Card>
+      )}
+      {method === "usdt" && trc20Address && (
+        <Card className="border-border">
+          <CardContent className="pt-6 space-y-3">
+            <Label className="text-xs uppercase tracking-wide text-muted-foreground">Send USDT (TRC20) to this address</Label>
+            <div className="flex items-center gap-2 rounded-md bg-muted p-3">
+              <span className="text-xs font-mono text-foreground break-all flex-1">{trc20Address}</span>
+              <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8" onClick={copyAddress}>
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card className="shadow-sm border-border">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-sm">Submit Payment</CardTitle>
+        </CardHeader>
+        <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label>Payment Method</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">Payment Method</Label>
               <Select value={method} onValueChange={setMethod}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="upi">UPI</SelectItem>
                   <SelectItem value="usdt">USDT (TRC20)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>Amount ($)</Label>
-              <Input type="number" step="0.01" min="1" value={amount || ""} onChange={(e) => setAmount(Number(e.target.value))} required />
+            <div className="space-y-1.5">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">Amount ($)</Label>
+              <Input type="number" step="0.01" min="1" value={amount || ""} onChange={(e) => setAmount(Number(e.target.value))} required className="w-full" />
             </div>
-            <div className="space-y-2">
-              <Label>{method === "upi" ? "UTR Number" : "Transaction ID"}</Label>
-              <Input value={reference} onChange={(e) => setReference(e.target.value)} required placeholder="Enter reference" />
+            <div className="space-y-1.5">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">{method === "upi" ? "UTR Number" : "Transaction ID"}</Label>
+              <Input value={reference} onChange={(e) => setReference(e.target.value)} required placeholder="Enter reference" className="w-full" />
             </div>
-            <div className="space-y-2">
-              <Label>Screenshot (optional)</Label>
-              <Input type="file" accept="image/*" onChange={(e) => setScreenshot(e.target.files?.[0] || null)} />
+            <div className="space-y-1.5">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">Screenshot (optional)</Label>
+              <Input type="file" accept="image/*" onChange={(e) => setScreenshot(e.target.files?.[0] || null)} className="w-full" />
             </div>
             <Button type="submit" className="w-full" disabled={submitting}>
               {submitting ? "Submitting..." : "Submit Payment"}
@@ -108,8 +154,8 @@ export default function UserFunds() {
         </CardContent>
       </Card>
 
-      <h3 className="text-lg font-semibold">Payment History</h3>
-      <div className="rounded-lg border bg-card overflow-hidden">
+      <h3 className="text-sm font-semibold text-foreground">Payment History</h3>
+      <div className="rounded-lg border border-border bg-card overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>

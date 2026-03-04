@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Tables } from "@/integrations/supabase/types";
 
 type PublicService = Tables<"public_services">;
@@ -95,118 +100,123 @@ export default function UserServices() {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <h2 className="text-base font-semibold text-foreground mb-3">New Order</h2>
-
-      <div className="bg-card border border-border shadow-sm rounded-xl p-4 md:p-6">
-        <form onSubmit={handleOrder} className="space-y-4">
-          {/* Category */}
-          <div className="space-y-1">
-            <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wide">Category</label>
-            <select
-              value={selectedCategory}
-              onChange={(e) => {
-                setSelectedCategory(e.target.value);
-                setSelectedService("");
-              }}
-              className="block w-full h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option value="">All Categories</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Service */}
-          <div className="space-y-1">
-            <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wide">Service</label>
-            <select
-              value={selectedService}
-              onChange={(e) => {
-                setSelectedService(e.target.value);
-                const s = services.find((x) => x.id === e.target.value);
-                if (s) setQuantity(s.min);
-              }}
-              className="block w-full h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option value="">Select a service</option>
-              {filteredServices.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name} — ${s.retail_rate}/1K
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Description */}
-          {service?.description && (
-            <div className="space-y-1">
-              <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wide">Description</label>
-              <div className="w-full min-h-[100px] rounded-md border border-input bg-muted p-3 text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap break-words">
-                {service.description}
-              </div>
+      <Card className="shadow-sm border-border">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">New Order</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleOrder} className="space-y-4">
+            {/* Category */}
+            <div className="space-y-1.5">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">Category</Label>
+              <Select
+                value={selectedCategory || "__all__"}
+                onValueChange={(v) => {
+                  setSelectedCategory(v === "__all__" ? "" : v);
+                  setSelectedService("");
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">All Categories</SelectItem>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          )}
 
-          {/* Link */}
-          <div className="space-y-1">
-            <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wide">Link</label>
-            <input
-              type="url"
-              value={link}
-              onChange={(e) => setLink(e.target.value)}
-              placeholder="https://example.com/post"
-              required
-              className="block w-full h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
+            {/* Service */}
+            <div className="space-y-1.5">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">Service</Label>
+              <Select
+                value={selectedService || "__none__"}
+                onValueChange={(v) => {
+                  const id = v === "__none__" ? "" : v;
+                  setSelectedService(id);
+                  const s = services.find((x) => x.id === id);
+                  if (s) setQuantity(s.min);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a service" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  <SelectItem value="__none__">Select a service</SelectItem>
+                  {filteredServices.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      <span className="line-clamp-1">{s.name} — ${s.retail_rate}/1K</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Quantity & Charge */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Quantity
-              </label>
-              <input
-                type="number"
-                value={quantity || ""}
-                onChange={(e) => setQuantity(Number(e.target.value))}
-                min={service?.min || 1}
-                max={service?.max || 10000}
+            {/* Description */}
+            {service?.description && (
+              <div className="space-y-1.5">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Description</Label>
+                <div className="w-full rounded-md border border-input bg-muted p-3 text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap break-words" style={{ overflowWrap: "anywhere" }}>
+                  {service.description}
+                </div>
+              </div>
+            )}
+
+            {/* Link */}
+            <div className="space-y-1.5">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">Link</Label>
+              <Input
+                type="url"
+                value={link}
+                onChange={(e) => setLink(e.target.value)}
+                placeholder="https://example.com/post"
                 required
-                placeholder={service ? `${service.min} – ${service.max}` : ""}
-                className="block w-full h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full"
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wide">Charge</label>
-              <div className="flex items-center h-10 rounded-md border border-input bg-muted px-3">
-                <span className="text-sm font-semibold text-foreground">
-                  ${totalCharge.toFixed(4)}
-                </span>
+            {/* Quantity & Charge */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5 min-w-0">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Quantity</Label>
+                <Input
+                  type="number"
+                  value={quantity || ""}
+                  onChange={(e) => setQuantity(Number(e.target.value))}
+                  min={service?.min || 1}
+                  max={service?.max || 10000}
+                  required
+                  placeholder={service ? `${service.min} – ${service.max}` : ""}
+                  className="w-full"
+                />
+              </div>
+              <div className="space-y-1.5 min-w-0">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Charge</Label>
+                <div className="flex items-center h-10 rounded-md border border-input bg-muted px-3">
+                  <span className="text-sm font-semibold text-foreground">
+                    ${totalCharge.toFixed(4)}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Rate info */}
-          {service && (
-            <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-xs">
-              <span className="text-muted-foreground">Rate per 1K</span>
-              <span className="font-semibold text-foreground">${service.retail_rate}</span>
-            </div>
-          )}
+            {/* Rate info */}
+            {service && (
+              <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-xs">
+                <span className="text-muted-foreground">Rate per 1K</span>
+                <span className="font-semibold text-foreground">${service.retail_rate}</span>
+              </div>
+            )}
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={submitting || !selectedService}
-            className="w-full h-10 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {submitting ? "Placing order…" : "Place Order"}
-          </button>
-        </form>
-      </div>
+            {/* Submit */}
+            <Button type="submit" className="w-full" disabled={submitting || !selectedService}>
+              {submitting ? "Placing order…" : "Place Order"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
