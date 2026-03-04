@@ -1,6 +1,7 @@
 import { LayoutDashboard, Server, Package, ShoppingCart, CreditCard, Users, Settings, LogOut, Layers, Link2 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
+import ThemeToggle from "@/components/ThemeToggle";
 import {
   Sidebar,
   SidebarContent,
@@ -61,7 +62,10 @@ export default function AdminSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="p-2">
+      <SidebarFooter className="p-2 space-y-1">
+        <div className="flex items-center justify-center">
+          <ThemeToggle />
+        </div>
         <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground" onClick={signOut}>
           <LogOut className="h-4 w-4" />
           {!collapsed && <span>Sign Out</span>}
