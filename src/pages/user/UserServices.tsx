@@ -93,88 +93,79 @@ export default function UserServices() {
       </div>
     );
 
-  const selectClass =
-    "w-full h-10 rounded-lg border border-input bg-background px-3 text-sm text-foreground truncate focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent appearance-none";
-
-  const inputClass =
-    "w-full h-10 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent";
-
   return (
-    <div className="max-w-2xl mx-auto w-full min-w-0 box-border">
-      <h2 className="text-lg font-semibold text-foreground mb-4">New Order</h2>
+    <div className="w-full max-w-2xl mx-auto">
+      <h2 className="text-base font-semibold text-foreground mb-3">New Order</h2>
 
       <div className="bg-card border border-border shadow-sm rounded-xl p-4 md:p-6">
-        <form onSubmit={handleOrder} className="space-y-5">
-          {/* Category & Service */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5 min-w-0 overflow-hidden">
-              <label className="block text-sm font-medium text-foreground">Category</label>
-              <select
-                value={selectedCategory}
-                onChange={(e) => {
-                  setSelectedCategory(e.target.value);
-                  setSelectedService("");
-                }}
-                className={selectClass}
-              >
-                <option value="">All Categories</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
+        <form onSubmit={handleOrder} className="space-y-4">
+          {/* Category */}
+          <div className="space-y-1">
+            <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wide">Category</label>
+            <select
+              value={selectedCategory}
+              onChange={(e) => {
+                setSelectedCategory(e.target.value);
+                setSelectedService("");
+              }}
+              className="block w-full h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="">All Categories</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
 
-            <div className="space-y-1.5 min-w-0 overflow-hidden">
-              <label className="block text-sm font-medium text-foreground">Service</label>
-              <select
-                value={selectedService}
-                onChange={(e) => {
-                  setSelectedService(e.target.value);
-                  const s = services.find((x) => x.id === e.target.value);
-                  if (s) setQuantity(s.min);
-                }}
-                className={selectClass}
-              >
-                <option value="">Select a service</option>
-                {filteredServices.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} — ${s.retail_rate}/1K
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* Service */}
+          <div className="space-y-1">
+            <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wide">Service</label>
+            <select
+              value={selectedService}
+              onChange={(e) => {
+                setSelectedService(e.target.value);
+                const s = services.find((x) => x.id === e.target.value);
+                if (s) setQuantity(s.min);
+              }}
+              className="block w-full h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="">Select a service</option>
+              {filteredServices.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} — ${s.retail_rate}/1K
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Description */}
           {service?.description && (
-            <div className="space-y-1.5 min-w-0 overflow-hidden">
-              <label className="block text-sm font-medium text-foreground">Description</label>
-              <textarea
-                readOnly
-                value={service.description}
-                className="w-full min-h-[120px] resize-none rounded-lg border border-input bg-muted px-3 py-2.5 text-sm text-muted-foreground break-words overflow-wrap-anywhere focus:outline-none"
-              />
+            <div className="space-y-1">
+              <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wide">Description</label>
+              <div className="w-full min-h-[100px] rounded-md border border-input bg-muted p-3 text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap break-words">
+                {service.description}
+              </div>
             </div>
           )}
 
           {/* Link */}
-          <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-foreground">Link</label>
+          <div className="space-y-1">
+            <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wide">Link</label>
             <input
               type="url"
               value={link}
               onChange={(e) => setLink(e.target.value)}
               placeholder="https://example.com/post"
               required
-              className={inputClass}
+              className="block w-full h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
 
           {/* Quantity & Charge */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5 min-w-0">
-              <label className="block text-sm font-medium text-foreground">
-                Quantity {service ? <span className="text-muted-foreground font-normal">({service.min} – {service.max})</span> : ""}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Quantity
               </label>
               <input
                 type="number"
@@ -183,13 +174,14 @@ export default function UserServices() {
                 min={service?.min || 1}
                 max={service?.max || 10000}
                 required
-                className={inputClass}
+                placeholder={service ? `${service.min} – ${service.max}` : ""}
+                className="block w-full h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
 
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-foreground">Charge</label>
-              <div className="flex items-center h-10 rounded-lg border border-input bg-muted px-3">
+            <div className="space-y-1">
+              <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wide">Charge</label>
+              <div className="flex items-center h-10 rounded-md border border-input bg-muted px-3">
                 <span className="text-sm font-semibold text-foreground">
                   ${totalCharge.toFixed(4)}
                 </span>
@@ -199,9 +191,9 @@ export default function UserServices() {
 
           {/* Rate info */}
           {service && (
-            <div className="flex items-center justify-between rounded-lg bg-muted border border-border px-4 py-2.5 text-sm">
+            <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-xs">
               <span className="text-muted-foreground">Rate per 1K</span>
-              <span className="font-medium text-foreground">${service.retail_rate}</span>
+              <span className="font-semibold text-foreground">${service.retail_rate}</span>
             </div>
           )}
 
@@ -209,7 +201,7 @@ export default function UserServices() {
           <button
             type="submit"
             disabled={submitting || !selectedService}
-            className="w-full h-11 rounded-lg bg-foreground text-background text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-10 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {submitting ? "Placing order…" : "Place Order"}
           </button>
