@@ -89,28 +89,33 @@ export default function UserServices() {
   if (loading)
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-900 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     );
 
-  return (
-    <div className="max-w-2xl mx-auto w-full min-w-0 overflow-x-hidden">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">New Order</h2>
+  const selectClass =
+    "w-full h-10 rounded-lg border border-input bg-background px-3 text-sm text-foreground truncate focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent appearance-none";
 
-      <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 md:p-6">
+  const inputClass =
+    "w-full h-10 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent";
+
+  return (
+    <div className="max-w-2xl mx-auto w-full min-w-0 box-border">
+      <h2 className="text-lg font-semibold text-foreground mb-4">New Order</h2>
+
+      <div className="bg-card border border-border shadow-sm rounded-xl p-4 md:p-6">
         <form onSubmit={handleOrder} className="space-y-5">
-          {/* Category & Service — 2-col on desktop */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
-            {/* Category */}
-            <div className="space-y-1.5 min-w-0">
-              <label className="block text-sm font-medium text-gray-700">Category</label>
+          {/* Category & Service */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5 min-w-0 overflow-hidden">
+              <label className="block text-sm font-medium text-foreground">Category</label>
               <select
                 value={selectedCategory}
                 onChange={(e) => {
                   setSelectedCategory(e.target.value);
                   setSelectedService("");
                 }}
-                className="w-full h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                className={selectClass}
               >
                 <option value="">All Categories</option>
                 {categories.map((c) => (
@@ -119,9 +124,8 @@ export default function UserServices() {
               </select>
             </div>
 
-            {/* Service */}
-            <div className="space-y-1.5 min-w-0">
-              <label className="block text-sm font-medium text-gray-700">Service</label>
+            <div className="space-y-1.5 min-w-0 overflow-hidden">
+              <label className="block text-sm font-medium text-foreground">Service</label>
               <select
                 value={selectedService}
                 onChange={(e) => {
@@ -129,7 +133,7 @@ export default function UserServices() {
                   const s = services.find((x) => x.id === e.target.value);
                   if (s) setQuantity(s.min);
                 }}
-                className="w-full h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                className={selectClass}
               >
                 <option value="">Select a service</option>
                 {filteredServices.map((s) => (
@@ -141,36 +145,36 @@ export default function UserServices() {
             </div>
           </div>
 
-          {/* Description (read-only) */}
+          {/* Description */}
           {service?.description && (
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Description</label>
+            <div className="space-y-1.5 min-w-0 overflow-hidden">
+              <label className="block text-sm font-medium text-foreground">Description</label>
               <textarea
                 readOnly
                 value={service.description}
-                className="w-full min-h-[120px] resize-none rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 break-words focus:outline-none"
+                className="w-full min-h-[120px] resize-none rounded-lg border border-input bg-muted px-3 py-2.5 text-sm text-muted-foreground break-words overflow-wrap-anywhere focus:outline-none"
               />
             </div>
           )}
 
           {/* Link */}
           <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-gray-700">Link</label>
+            <label className="block text-sm font-medium text-foreground">Link</label>
             <input
               type="url"
               value={link}
               onChange={(e) => setLink(e.target.value)}
               placeholder="https://example.com/post"
               required
-              className="w-full h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+              className={inputClass}
             />
           </div>
 
-          {/* Quantity & Charge — 2-col */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
+          {/* Quantity & Charge */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5 min-w-0">
-              <label className="block text-sm font-medium text-gray-700">
-                Quantity {service ? <span className="text-gray-400 font-normal">({service.min} – {service.max})</span> : ""}
+              <label className="block text-sm font-medium text-foreground">
+                Quantity {service ? <span className="text-muted-foreground font-normal">({service.min} – {service.max})</span> : ""}
               </label>
               <input
                 type="number"
@@ -179,14 +183,14 @@ export default function UserServices() {
                 min={service?.min || 1}
                 max={service?.max || 10000}
                 required
-                className="w-full h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                className={inputClass}
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Charge</label>
-              <div className="flex items-center h-10 rounded-lg border border-gray-200 bg-gray-50 px-3">
-                <span className="text-sm font-semibold text-gray-900">
+              <label className="block text-sm font-medium text-foreground">Charge</label>
+              <div className="flex items-center h-10 rounded-lg border border-input bg-muted px-3">
+                <span className="text-sm font-semibold text-foreground">
                   ${totalCharge.toFixed(4)}
                 </span>
               </div>
@@ -195,9 +199,9 @@ export default function UserServices() {
 
           {/* Rate info */}
           {service && (
-            <div className="flex items-center justify-between rounded-lg bg-gray-50 border border-gray-100 px-4 py-2.5 text-sm">
-              <span className="text-gray-500">Rate per 1K</span>
-              <span className="font-medium text-gray-900">${service.retail_rate}</span>
+            <div className="flex items-center justify-between rounded-lg bg-muted border border-border px-4 py-2.5 text-sm">
+              <span className="text-muted-foreground">Rate per 1K</span>
+              <span className="font-medium text-foreground">${service.retail_rate}</span>
             </div>
           )}
 
@@ -205,7 +209,7 @@ export default function UserServices() {
           <button
             type="submit"
             disabled={submitting || !selectedService}
-            className="w-full h-11 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-11 rounded-lg bg-foreground text-background text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? "Placing order…" : "Place Order"}
           </button>
