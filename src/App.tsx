@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { CurrencyProvider } from "@/hooks/useCurrency";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminLayout from "@/components/AdminLayout";
 import UserLayout from "@/components/UserLayout";
@@ -30,11 +31,12 @@ function RootRedirect() {
   const { user, role, loading } = useAuth();
   if (loading) return <div className="flex min-h-screen items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
   if (!user) return <Navigate to="/login" replace />;
-  return <Navigate to={role === "admin" ? "/admin" : "/dashboard"} replace />;
+  return <Navigate to={role === "admin" ? "/admin" : "/dashboard/services"} replace />;
 }
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <CurrencyProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -71,6 +73,7 @@ const App = () => (
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
+    </CurrencyProvider>
   </QueryClientProvider>
 );
 

@@ -5,11 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Save, Loader2, Upload } from "lucide-react";
+import { Save, Loader2 } from "lucide-react";
 
 export default function AdminPaymentSettings() {
   const [upiQrUrl, setUpiQrUrl] = useState("");
   const [trc20Address, setTrc20Address] = useState("");
+  const [exchangeRate, setExchangeRate] = useState("83.50");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -21,6 +22,7 @@ export default function AdminPaymentSettings() {
         for (const row of data) {
           if (row.setting_key === "upi_qr_url") setUpiQrUrl(row.setting_value);
           if (row.setting_key === "trc20_address") setTrc20Address(row.setting_value);
+          if (row.setting_key === "usd_to_inr_rate") setExchangeRate(row.setting_value);
         }
       }
       setLoading(false);
@@ -48,6 +50,7 @@ export default function AdminPaymentSettings() {
     const updates = [
       supabase.from("payment_settings").update({ setting_value: upiQrUrl, updated_at: new Date().toISOString() }).eq("setting_key", "upi_qr_url"),
       supabase.from("payment_settings").update({ setting_value: trc20Address, updated_at: new Date().toISOString() }).eq("setting_key", "trc20_address"),
+      supabase.from("payment_settings").update({ setting_value: exchangeRate, updated_at: new Date().toISOString() }).eq("setting_key", "usd_to_inr_rate"),
     ];
     const results = await Promise.all(updates);
     const hasError = results.some((r) => r.error);
@@ -86,11 +89,7 @@ export default function AdminPaymentSettings() {
             </div>
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Or paste image URL</Label>
-              <Input
-                value={upiQrUrl}
-                onChange={(e) => setUpiQrUrl(e.target.value)}
-                placeholder="https://..."
-              />
+              <Input value={upiQrUrl} onChange={(e) => setUpiQrUrl(e.target.value)} placeholder="https://..." />
             </div>
           </CardContent>
         </Card>
@@ -101,18 +100,31 @@ export default function AdminPaymentSettings() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Wallet Address</Label>
-              <Input
-                value={trc20Address}
-                onChange={(e) => setTrc20Address(e.target.value)}
-                placeholder="T..."
-                className="font-mono text-xs"
-              />
+              <Input value={trc20Address} onChange={(e) => setTrc20Address(e.target.value)} placeholder="T..." className="font-mono text-xs" />
             </div>
             {trc20Address && (
-              <div className="rounded-md bg-muted p-3 text-xs font-mono text-muted-foreground break-all">
-                {trc20Address}
-              </div>
+              <div className="rounded-md bg-muted p-3 text-xs font-mono text-muted-foreground break-all">{trc20Address}</div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Exchange Rate */}
+        <Card className="border-border">
+          <CardHeader><CardTitle className="text-sm">USD → INR Exchange Rate</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">1 USD = ? INR</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={exchangeRate}
+                onChange={(e) => setExchangeRate(e.target.value)}
+                placeholder="83.50"
+              />
+            </div>
+            <div className="rounded-md bg-muted p-3 text-xs text-muted-foreground">
+              Example: $10.00 = ₹{(10 * parseFloat(exchangeRate || "0")).toFixed(2)}
+            </div>
           </CardContent>
         </Card>
       </div>

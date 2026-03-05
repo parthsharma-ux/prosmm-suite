@@ -5,9 +5,11 @@ import { useEffect, useState } from "react";
 export default function ThemeToggle() {
   const [dark, setDark] = useState(() => {
     if (typeof window !== "undefined") {
-      return document.documentElement.classList.contains("dark");
+      const saved = localStorage.getItem("theme");
+      // Default to dark if no preference saved
+      return saved ? saved === "dark" : true;
     }
-    return false;
+    return true;
   });
 
   useEffect(() => {
@@ -22,7 +24,7 @@ export default function ThemeToggle() {
 
   useEffect(() => {
     const saved = localStorage.getItem("theme");
-    if (saved === "dark") {
+    if (!saved || saved === "dark") {
       setDark(true);
       document.documentElement.classList.add("dark");
     }
