@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useCurrency } from "@/hooks/useCurrency";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ type Category = Tables<"categories">;
 
 export default function UserServices() {
   const { user } = useAuth();
+  const { format, symbol } = useCurrency();
   const [services, setServices] = useState<PublicService[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,39 +56,43 @@ export default function UserServices() {
 
     setSubmitting(true);
 
-    const { data: profile } = await supabase.from("profiles").select("wallet_balance").eq("user_id", user.id).single();
-    if (!profile || profile.wallet_balance < totalCharge) {
-      toast.error("Insufficient balance");
-      setSubmitting(false);
-      return;
-    }
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { toast.error("Please login again"); setSubmitting(false); return; }
 
-    await supabase.from("profiles").update({ wallet_balance: profile.wallet_balance - totalCharge }).eq("user_id", user.id);
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/place-order`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            public_service_id: service.id,
+            link: link.trim(),
+            quantity,
+          }),
+        }
+      );
 
-    const { error } = await supabase.from("orders").insert({
-      user_id: user.id,
-      public_service_id: service.id,
-      link,
-      quantity,
-      charge: totalCharge,
-      status: "pending",
-    });
-
-    if (error) {
-      await supabase.from("profiles").update({ wallet_balance: profile.wallet_balance }).eq("user_id", user.id);
-      toast.error("Failed to place order");
-    } else {
-      await supabase.from("transactions").insert({
-        user_id: user.id,
-        type: "debit",
-        amount: totalCharge,
-        description: `Order: ${service.name}`,
-      });
-      toast.success("Order placed successfully!");
-      setLink("");
-      setQuantity(0);
-      setSelectedService("");
-      setSelectedCategory("");
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Failed to place order");
+      } else {
+        toast.success(
+          data.provider_order_id
+            ? `Order placed & sent to provider! ID: ${data.provider_order_id}`
+            : "Order placed successfully!"
+        );
+        setLink("");
+        setQuantity(0);
+        setSelectedService("");
+        setSelectedCategory("");
+      }
+    } catch {
+      toast.error("Network error");
     }
     setSubmitting(false);
   };
@@ -106,7 +112,6 @@ export default function UserServices() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleOrder} className="space-y-4">
-            {/* Category */}
             <div className="space-y-1.5">
               <Label className="text-xs uppercase tracking-wide text-muted-foreground">Category</Label>
               <Select
@@ -128,7 +133,6 @@ export default function UserServices() {
               </Select>
             </div>
 
-            {/* Service */}
             <div className="space-y-1.5">
               <Label className="text-xs uppercase tracking-wide text-muted-foreground">Service</Label>
               <Select
@@ -147,14 +151,13 @@ export default function UserServices() {
                   <SelectItem value="__none__">Select a service</SelectItem>
                   {filteredServices.map((s) => (
                     <SelectItem key={s.id} value={s.id}>
-                      <span className="line-clamp-1">{s.name} — ${s.retail_rate}/1K</span>
+                      <span className="line-clamp-1">{s.name} — {format(s.retail_rate, 2)}/1K</span>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Description */}
             {service?.description && (
               <div className="space-y-1.5">
                 <Label className="text-xs uppercase tracking-wide text-muted-foreground">Description</Label>
@@ -164,7 +167,6 @@ export default function UserServices() {
               </div>
             )}
 
-            {/* Link */}
             <div className="space-y-1.5">
               <Label className="text-xs uppercase tracking-wide text-muted-foreground">Link</Label>
               <Input
@@ -177,7 +179,6 @@ export default function UserServices() {
               />
             </div>
 
-            {/* Quantity & Charge */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5 min-w-0">
                 <Label className="text-xs uppercase tracking-wide text-muted-foreground">Quantity</Label>
@@ -196,21 +197,19 @@ export default function UserServices() {
                 <Label className="text-xs uppercase tracking-wide text-muted-foreground">Charge</Label>
                 <div className="flex items-center h-10 rounded-md border border-input bg-muted px-3">
                   <span className="text-sm font-semibold text-foreground">
-                    ${totalCharge.toFixed(4)}
+                    {format(totalCharge, 4)}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Rate info */}
             {service && (
               <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-xs">
                 <span className="text-muted-foreground">Rate per 1K</span>
-                <span className="font-semibold text-foreground">${service.retail_rate}</span>
+                <span className="font-semibold text-foreground">{format(service.retail_rate)}</span>
               </div>
             )}
 
-            {/* Submit */}
             <Button type="submit" className="w-full" disabled={submitting || !selectedService}>
               {submitting ? "Placing order…" : "Place Order"}
             </Button>
