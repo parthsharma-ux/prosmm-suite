@@ -9,8 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Copy } from "lucide-react";
+import { Copy, Wallet, ArrowUpRight } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import upiQrImage from "@/assets/upi-qr.jpg";
 
 type PaymentRequest = Tables<"payment_requests">;
 
@@ -97,24 +98,34 @@ export default function UserFunds() {
       <h2 className="text-base font-semibold text-foreground">Add Funds</h2>
 
       {/* Payment Info */}
-      {method === "upi" && upiQrUrl && (
-        <Card className="border-border">
-          <CardContent className="pt-6 flex flex-col items-center gap-3">
-            <Label className="text-xs uppercase tracking-wide text-muted-foreground">Scan QR to Pay via UPI</Label>
-            <img src={upiQrUrl} alt="UPI QR" className="max-w-48 rounded-lg border border-border" />
+      {method === "upi" && (
+        <Card className="border-border bg-card/50 backdrop-blur-sm">
+          <CardContent className="pt-6 flex flex-col items-center gap-4">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Wallet className="h-4 w-4" />
+              <span>Scan QR to Pay via UPI</span>
+            </div>
+            <div className="rounded-xl border-2 border-primary/20 p-2 bg-background shadow-lg">
+              <img src={upiQrImage} alt="UPI QR Code" className="w-52 h-52 rounded-lg object-contain" />
+            </div>
+            <p className="text-xs text-muted-foreground">Pay using any UPI app and submit the UTR below</p>
           </CardContent>
         </Card>
       )}
       {method === "usdt" && trc20Address && (
-        <Card className="border-border">
+        <Card className="border-border bg-card/50 backdrop-blur-sm">
           <CardContent className="pt-6 space-y-3">
-            <Label className="text-xs uppercase tracking-wide text-muted-foreground">Send USDT (TRC20) to this address</Label>
-            <div className="flex items-center gap-2 rounded-md bg-muted p-3">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <ArrowUpRight className="h-4 w-4" />
+              <span>Send USDT (TRC20) to this address</span>
+            </div>
+            <div className="flex items-center gap-2 rounded-lg bg-muted/50 border border-border p-3">
               <span className="text-xs font-mono text-foreground break-all flex-1">{trc20Address}</span>
               <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8" onClick={copyAddress}>
                 <Copy className="h-4 w-4" />
               </Button>
             </div>
+            <p className="text-xs text-muted-foreground">Send exact amount and submit the Transaction ID below</p>
           </CardContent>
         </Card>
       )}
