@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -67,31 +68,42 @@ export default function AdminServices() {
   if (loading) return <div className="flex items-center justify-center h-64"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-300">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold tracking-tight">Public Services</h2>
         <Button size="sm" onClick={openAdd}><Plus className="h-4 w-4 mr-1" /> Add Service</Button>
       </div>
-      <div className="rounded-lg border bg-card overflow-hidden">
+      <div className="rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden shadow-sm">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Rate</TableHead>
-              <TableHead>Min/Max</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+            <TableRow className="bg-muted/30">
+              <TableHead className="font-semibold">ID</TableHead>
+              <TableHead className="font-semibold">Name</TableHead>
+              <TableHead className="font-semibold">Category</TableHead>
+              <TableHead className="font-semibold">Rate</TableHead>
+              <TableHead className="font-semibold">Min/Max</TableHead>
+              <TableHead className="font-semibold">Status</TableHead>
+              <TableHead className="text-right font-semibold">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {services.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No services</TableCell></TableRow>}
+            {services.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No services</TableCell></TableRow>}
             {services.map((s) => (
-              <TableRow key={s.id}>
-                <TableCell className="font-medium max-w-48 truncate">{s.name}</TableCell>
-                <TableCell>{getCategoryName(s.category_id)}</TableCell>
-                <TableCell>${s.retail_rate}</TableCell>
-                <TableCell>{s.min} / {s.max}</TableCell>
+              <TableRow key={s.id} className="group hover:bg-muted/20 transition-colors">
+                <TableCell>
+                  <Badge variant="secondary" className="text-[10px] font-bold px-1.5 py-0 rounded bg-primary/10 text-primary border-0">
+                    {s.id.slice(0, 6)}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="min-w-0 max-w-64">
+                    <p className="font-bold text-sm whitespace-normal break-words leading-tight">{s.name}</p>
+                    {s.description && <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{s.description}</p>}
+                  </div>
+                </TableCell>
+                <TableCell><span className="font-medium text-xs">{getCategoryName(s.category_id)}</span></TableCell>
+                <TableCell><span className="font-semibold">${s.retail_rate}</span></TableCell>
+                <TableCell className="text-xs text-muted-foreground">{s.min} / {s.max}</TableCell>
                 <TableCell><Switch checked={s.status} onCheckedChange={() => toggle(s)} /></TableCell>
                 <TableCell className="text-right space-x-1">
                   <Button variant="ghost" size="icon" onClick={() => openEdit(s)}><Pencil className="h-4 w-4" /></Button>
@@ -105,23 +117,23 @@ export default function AdminServices() {
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>{editing ? "Edit" : "Add"} Service</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="font-bold">{editing ? "Edit" : "Add"} Service</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Category</Label>
+              <Label className="font-semibold text-xs uppercase tracking-wider">Category</Label>
               <Select value={form.category_id} onValueChange={(v) => setForm({ ...form, category_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
                 <SelectContent>{categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div className="space-y-2"><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Description</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} /></div>
+            <div className="space-y-2"><Label className="font-semibold text-xs uppercase tracking-wider">Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+            <div className="space-y-2"><Label className="font-semibold text-xs uppercase tracking-wider">Description</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} /></div>
             <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2"><Label>Retail Rate ($)</Label><Input type="number" step="0.01" value={form.retail_rate} onChange={(e) => setForm({ ...form, retail_rate: Number(e.target.value) })} /></div>
-              <div className="space-y-2"><Label>Min</Label><Input type="number" value={form.min} onChange={(e) => setForm({ ...form, min: Number(e.target.value) })} /></div>
-              <div className="space-y-2"><Label>Max</Label><Input type="number" value={form.max} onChange={(e) => setForm({ ...form, max: Number(e.target.value) })} /></div>
+              <div className="space-y-2"><Label className="font-semibold text-xs uppercase tracking-wider">Rate ($)</Label><Input type="number" step="0.01" value={form.retail_rate} onChange={(e) => setForm({ ...form, retail_rate: Number(e.target.value) })} /></div>
+              <div className="space-y-2"><Label className="font-semibold text-xs uppercase tracking-wider">Min</Label><Input type="number" value={form.min} onChange={(e) => setForm({ ...form, min: Number(e.target.value) })} /></div>
+              <div className="space-y-2"><Label className="font-semibold text-xs uppercase tracking-wider">Max</Label><Input type="number" value={form.max} onChange={(e) => setForm({ ...form, max: Number(e.target.value) })} /></div>
             </div>
-            <Button onClick={handleSave} className="w-full">{editing ? "Update" : "Create"}</Button>
+            <Button onClick={handleSave} className="w-full font-semibold">{editing ? "Update" : "Create"}</Button>
           </div>
         </DialogContent>
       </Dialog>

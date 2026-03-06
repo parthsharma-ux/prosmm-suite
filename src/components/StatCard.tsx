@@ -10,15 +10,15 @@ interface StatCardProps {
 
 export default function StatCard({ title, value, icon: Icon, description }: StatCardProps) {
   return (
-    <Card className="shadow-sm border-border/50">
+    <Card className="border-border/50 shadow-md bg-card/80 backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5">
       <CardContent className="p-5">
         <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{title}</p>
+          <div className="space-y-1.5">
+            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{title}</p>
             <p className="text-2xl font-bold tracking-tight text-foreground">{value}</p>
             {description && <p className="text-xs text-muted-foreground">{description}</p>}
           </div>
-          <div className="p-2 rounded-lg bg-accent">
+          <div className="p-2.5 rounded-xl bg-primary/10">
             <Icon className="h-5 w-5 text-primary" />
           </div>
         </div>
