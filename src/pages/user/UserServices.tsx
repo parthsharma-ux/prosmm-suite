@@ -159,22 +159,22 @@ export default function UserServices() {
                 <SelectTrigger className="w-full h-11 max-w-full">
                   <SelectValue placeholder="Select a service" />
                 </SelectTrigger>
-                <SelectContent className="max-h-72 w-[var(--radix-select-trigger-width)] max-w-[calc(100vw-2rem)]">
+                <SelectContent className="max-h-72 overflow-x-hidden" style={{ width: 'var(--radix-select-trigger-width)', maxWidth: 'calc(100vw - 2rem)' }}>
                   <SelectItem value="__none__">Select a service</SelectItem>
                   {filteredServices.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      <div className="flex flex-col gap-0.5 py-1 w-full min-w-0">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <Badge variant="secondary" className="shrink-0 text-[10px] font-bold px-1.5 py-0 rounded bg-primary/10 text-primary border-0">
+                    <SelectItem key={s.id} value={s.id} className="py-2.5 px-2">
+                      <div className="flex flex-col gap-1 w-full min-w-0 overflow-hidden" style={{ maxWidth: '100%' }}>
+                        <div className="flex items-start gap-2 min-w-0">
+                          <span className="shrink-0 inline-block text-[11px] font-bold px-2 py-0.5 rounded-md bg-primary/15 text-primary leading-none mt-0.5">
                             ID: {s.id.slice(0, 4)}
-                          </Badge>
-                          <span className="font-bold text-sm whitespace-normal break-words leading-tight">{s.name}</span>
+                          </span>
+                          <span className="font-semibold text-[13px] leading-snug" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere', whiteSpace: 'normal' }}>{s.name}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground pl-0">
-                          <span className="font-semibold">{format(s.retail_rate, 2)}/1K</span>
-                          <span>•</span>
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground pl-0">
+                          <span className="font-semibold text-foreground">{format(s.retail_rate, 2)}/1K</span>
+                          <span className="text-muted-foreground/50">•</span>
                           <span>Min: {s.min}</span>
-                          <span>•</span>
+                          <span className="text-muted-foreground/50">•</span>
                           <span>Max: {s.max}</span>
                         </div>
                       </div>
