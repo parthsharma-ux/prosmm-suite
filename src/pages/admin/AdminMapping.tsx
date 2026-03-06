@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -14,24 +15,28 @@ import type { Tables } from "@/integrations/supabase/types";
 type ServiceMap = Tables<"service_provider_map">;
 type PublicService = Tables<"public_services">;
 type ProviderService = Tables<"provider_services">;
+type Provider = Tables<"providers">;
 
 export default function AdminMapping() {
   const [mappings, setMappings] = useState<ServiceMap[]>([]);
   const [publicServices, setPublicServices] = useState<PublicService[]>([]);
   const [providerServices, setProviderServices] = useState<ProviderService[]>([]);
+  const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({ public_service_id: "", provider_service_id: "", priority: 1, custom_margin: 0, failover_enabled: false });
 
   const fetchData = async () => {
-    const [m, ps, pvs] = await Promise.all([
+    const [m, ps, pvs, prov] = await Promise.all([
       supabase.from("service_provider_map").select("*").order("priority"),
       supabase.from("public_services").select("*").order("name"),
       supabase.from("provider_services").select("*").order("name"),
+      supabase.from("providers").select("*").order("name"),
     ]);
     setMappings(m.data || []);
     setPublicServices(ps.data || []);
     setProviderServices(pvs.data || []);
+    setProviders(prov.data || []);
     setLoading(false);
   };
 
@@ -52,69 +57,114 @@ export default function AdminMapping() {
     fetchData();
   };
 
-  const getPublicName = (id: string) => publicServices.find((s) => s.id === id)?.name || id;
-  const getProviderName = (id: string) => providerServices.find((s) => s.id === id)?.name || id;
+  const getPublicService = (id: string) => publicServices.find((s) => s.id === id);
+  const getProviderService = (id: string) => providerServices.find((s) => s.id === id);
+  const getProviderName = (providerId: string) => providers.find((p) => p.id === providerId)?.name || "—";
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-300">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold tracking-tight">API Mapping</h2>
         <Button size="sm" onClick={() => { setForm({ public_service_id: "", provider_service_id: "", priority: 1, custom_margin: 0, failover_enabled: false }); setDialogOpen(true); }}><Plus className="h-4 w-4 mr-1" /> Add Mapping</Button>
       </div>
-      <div className="rounded-lg border bg-card overflow-hidden">
+      <div className="rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden shadow-sm">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Public Service</TableHead>
-              <TableHead>Provider Service</TableHead>
-              <TableHead>Priority</TableHead>
-              <TableHead>Margin</TableHead>
-              <TableHead>Failover</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+            <TableRow className="bg-muted/30">
+              <TableHead className="font-semibold">Panel Service</TableHead>
+              <TableHead className="font-semibold">Provider</TableHead>
+              <TableHead className="font-semibold">Provider Service</TableHead>
+              <TableHead className="font-semibold">Priority</TableHead>
+              <TableHead className="font-semibold">Margin</TableHead>
+              <TableHead className="font-semibold">Failover</TableHead>
+              <TableHead className="text-right font-semibold">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {mappings.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No mappings</TableCell></TableRow>}
-            {mappings.map((m) => (
-              <TableRow key={m.id}>
-                <TableCell className="font-medium max-w-32 truncate">{getPublicName(m.public_service_id)}</TableCell>
-                <TableCell className="max-w-32 truncate">{getProviderName(m.provider_service_id)}</TableCell>
-                <TableCell>{m.priority}</TableCell>
-                <TableCell>{m.custom_margin}%</TableCell>
-                <TableCell><Switch checked={m.failover_enabled} onCheckedChange={() => toggleFailover(m)} /></TableCell>
-                <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => del(m.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>
-              </TableRow>
-            ))}
+            {mappings.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No mappings</TableCell></TableRow>}
+            {mappings.map((m) => {
+              const ps = getPublicService(m.public_service_id);
+              const pvs = getProviderService(m.provider_service_id);
+              return (
+                <TableRow key={m.id} className="group hover:bg-muted/20 transition-colors">
+                  <TableCell>
+                    <div className="min-w-0 max-w-48">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <Badge variant="secondary" className="shrink-0 text-[10px] font-bold px-1.5 py-0 rounded bg-primary/10 text-primary border-0">
+                          {m.public_service_id.slice(0, 6)}
+                        </Badge>
+                      </div>
+                      <p className="font-bold text-xs whitespace-normal break-words leading-tight">{ps?.name || m.public_service_id}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="font-medium text-xs">{pvs ? getProviderName(pvs.provider_id) : "—"}</span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="min-w-0 max-w-48">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <Badge variant="outline" className="shrink-0 text-[10px] font-bold px-1.5 py-0 rounded">
+                          {pvs?.external_service_id || m.provider_service_id.slice(0, 6)}
+                        </Badge>
+                      </div>
+                      <p className="text-xs whitespace-normal break-words leading-tight text-muted-foreground">{pvs?.name || m.provider_service_id}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell><span className="font-semibold">{m.priority}</span></TableCell>
+                  <TableCell><span className="font-semibold">{m.custom_margin}%</span></TableCell>
+                  <TableCell><Switch checked={m.failover_enabled} onCheckedChange={() => toggleFailover(m)} /></TableCell>
+                  <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => del(m.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Add Mapping</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="font-bold">Add Mapping</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Public Service</Label>
+              <Label className="font-semibold text-xs uppercase tracking-wider">Public Service</Label>
               <Select value={form.public_service_id} onValueChange={(v) => setForm({ ...form, public_service_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>{publicServices.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
+                <SelectTrigger className="w-full max-w-full"><SelectValue placeholder="Select" /></SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {publicServices.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Badge variant="secondary" className="shrink-0 text-[10px] font-bold px-1.5 py-0 rounded bg-primary/10 text-primary border-0">{s.id.slice(0, 4)}</Badge>
+                        <span className="font-medium text-sm whitespace-normal break-words">{s.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Provider Service</Label>
+              <Label className="font-semibold text-xs uppercase tracking-wider">Provider Service</Label>
               <Select value={form.provider_service_id} onValueChange={(v) => setForm({ ...form, provider_service_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>{providerServices.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
+                <SelectTrigger className="w-full max-w-full"><SelectValue placeholder="Select" /></SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {providerServices.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Badge variant="outline" className="shrink-0 text-[10px] font-bold px-1.5 py-0 rounded">{s.external_service_id}</Badge>
+                        <span className="font-medium text-sm whitespace-normal break-words">{s.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Priority</Label><Input type="number" value={form.priority} onChange={(e) => setForm({ ...form, priority: Number(e.target.value) })} /></div>
-              <div className="space-y-2"><Label>Custom Margin %</Label><Input type="number" step="0.01" value={form.custom_margin} onChange={(e) => setForm({ ...form, custom_margin: Number(e.target.value) })} /></div>
+              <div className="space-y-2"><Label className="font-semibold text-xs uppercase tracking-wider">Priority</Label><Input type="number" value={form.priority} onChange={(e) => setForm({ ...form, priority: Number(e.target.value) })} /></div>
+              <div className="space-y-2"><Label className="font-semibold text-xs uppercase tracking-wider">Custom Margin %</Label><Input type="number" step="0.01" value={form.custom_margin} onChange={(e) => setForm({ ...form, custom_margin: Number(e.target.value) })} /></div>
             </div>
-            <div className="flex items-center gap-2"><Switch checked={form.failover_enabled} onCheckedChange={(v) => setForm({ ...form, failover_enabled: v })} /><Label>Enable Failover</Label></div>
-            <Button onClick={handleSave} className="w-full">Add Mapping</Button>
+            <div className="flex items-center gap-2"><Switch checked={form.failover_enabled} onCheckedChange={(v) => setForm({ ...form, failover_enabled: v })} /><Label className="font-medium">Enable Failover</Label></div>
+            <Button onClick={handleSave} className="w-full font-semibold">Add Mapping</Button>
           </div>
         </DialogContent>
       </Dialog>

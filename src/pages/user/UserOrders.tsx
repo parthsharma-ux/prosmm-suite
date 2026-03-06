@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useCurrency } from "@/hooks/useCurrency";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { Tables } from "@/integrations/supabase/types";
@@ -18,6 +19,7 @@ const statusColors: Record<string, string> = {
 
 export default function UserOrders() {
   const { user } = useAuth();
+  const { format } = useCurrency();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -32,29 +34,33 @@ export default function UserOrders() {
   if (loading) return <div className="flex items-center justify-center h-64"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-300">
       <h2 className="text-xl font-bold tracking-tight">My Orders</h2>
-      <div className="rounded-lg border bg-card overflow-hidden">
+      <div className="rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden shadow-sm">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Order ID</TableHead>
-              <TableHead>Link</TableHead>
-              <TableHead>Quantity</TableHead>
-              <TableHead>Charge</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Date</TableHead>
+            <TableRow className="bg-muted/30">
+              <TableHead className="font-semibold">Order ID</TableHead>
+              <TableHead className="font-semibold">Link</TableHead>
+              <TableHead className="font-semibold">Quantity</TableHead>
+              <TableHead className="font-semibold">Charge</TableHead>
+              <TableHead className="font-semibold">Status</TableHead>
+              <TableHead className="font-semibold">Date</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {orders.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No orders yet</TableCell></TableRow>}
             {orders.map((o) => (
-              <TableRow key={o.id}>
-                <TableCell className="font-mono text-xs">{o.id.slice(0, 8)}</TableCell>
-                <TableCell className="max-w-32 truncate text-xs">{o.link}</TableCell>
-                <TableCell>{o.quantity}</TableCell>
-                <TableCell>${o.charge}</TableCell>
-                <TableCell><Badge variant="outline" className={statusColors[o.status] || ""}>{o.status}</Badge></TableCell>
+              <TableRow key={o.id} className="hover:bg-muted/20 transition-colors">
+                <TableCell>
+                  <Badge variant="secondary" className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary border-0 font-mono">
+                    {o.id.slice(0, 8)}
+                  </Badge>
+                </TableCell>
+                <TableCell className="max-w-40 truncate text-xs text-muted-foreground">{o.link}</TableCell>
+                <TableCell className="font-semibold">{o.quantity}</TableCell>
+                <TableCell className="font-bold">{format(o.charge)}</TableCell>
+                <TableCell><Badge variant="outline" className={`font-semibold capitalize ${statusColors[o.status] || ""}`}>{o.status}</Badge></TableCell>
                 <TableCell className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</TableCell>
               </TableRow>
             ))}
